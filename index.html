@@ -529,10 +529,9 @@ function goDayDetail(day) {
   html += '<div class="card drive-card"><div class="drive-row">';
   html += '<div class="drive-item">🚗<span class="drive-val">' + d.driveTime + '</span></div>';
   html += '<div class="drive-item">🛣️<span class="drive-val">' + d.driveDist + '</span></div>';
-  html += '<div class="drive-item">🏠<span class="drive-val">' + (d.stay || '—') + '</span></div>';
-  html += '</div>';
+  html += '<div class="drive-item">🏠<span class="drive-val">' + (d.stay || '—') + '</span>';
   const sCoord = getStayCoord(d.stay);
-  if (sCoord) html += '<div style="font-size:11px;color:var(--primary);cursor:pointer;margin-top:4px" onclick="navToSpot(' + sCoord[1] + ',' + sCoord[0] + ',\'' + (d.stay||'住宿').replace(/'/g,"\\'") + '\')">🧭 导航到住宿地</div>';
+  if (sCoord) html += ' <span style="font-size:11px;color:var(--primary);cursor:pointer" onclick="event.stopPropagation();navToSpot(' + sCoord[1] + ',' + sCoord[0] + ',\'' + (d.stay||'住宿').replace(/'/g,"\\'") + '\')">🧭</span>';
   html += '</div>';
   html += '<div class="sec-hd"><span class="sec-title">📍 本日景点</span></div>';
 
@@ -544,7 +543,9 @@ function goDayDetail(day) {
     html += '</div><div class="spot-meta">';
     html += '<span class="meta-tag">🎫 ' + s.ticket + '</span>';
     html += '<span class="meta-tag">🕐 ' + (s.time || '—') + '</span>';
-    if (s.nav && s.nav !== '—') html += '<span class="meta-tag">📍 ' + s.nav.substring(0,25) + '</span>';
+    if (s.nav && s.nav !== '—') html += '<span class="meta-tag">📍 ' + s.nav.substring(0,22) + '</span>';
+    const coord = getSpotCoord(s.name);
+    if (coord) html += ' <span style="font-size:11px;color:var(--primary);cursor:pointer;font-weight:600" onclick="event.stopPropagation();navToSpot(' + coord[1] + ',' + coord[0] + ',\'' + (s.nav&&s.nav!=='—'?s.nav:s.name).replace(/'/g,"\\'") + '\')">🧭 导航</span>';
     html += '</div>';
     if (s.notes && s.notes.length) {
       html += '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:4px">';
@@ -559,13 +560,7 @@ function goDayDetail(day) {
       html += '<div style="font-size:11px;margin-top:4px">' + (photo.drone ? '🛸 可飞无人机' : '🚫 禁飞无人机') + '</div>';
       html += '</div>';
     }
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">';
-    const coord = getSpotCoord(s.name);
-    const navAddr = (s.nav && s.nav !== '—') ? s.nav : s.name;
-    if (coord) html += '<span style="font-size:12px;color:var(--primary);cursor:pointer" onclick="event.stopPropagation();navToSpot(' + coord[1] + ',' + coord[0] + ',\'' + navAddr.replace(/'/g,"\\'") + '\')">🧭 导航</span>';
-    else html += '<span></span>';
-    html += '<span class="spot-arrow" style="margin:0">查看完整攻略›</span>';
-    html += '</div></div>';
+    html += '<div class="spot-arrow">查看完整攻略›</div></div>';
   });
 
   html += '<div class="nav-row">';

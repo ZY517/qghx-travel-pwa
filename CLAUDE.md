@@ -1,32 +1,31 @@
-# 青甘大环线 PWA App 开发规则
+# 青甘大环线 App 开发规则
 
-## 自动部署
+## 双端同步
 
-修改 `index.html` 后，必须自动执行以下操作：
+存在两个项目，**任何功能改动必须两端同步**：
 
+| 项目 | 路径 | 部署方式 |
+|------|------|----------|
+| **PWA** | `app-pwa/` | Netlify 自动部署 |
+| **微信小程序** | `travel-guide/` | 微信开发者工具预览 |
+
+改动顺序：先改 PWA → 再同步到小程序。
+
+## PWA 自动部署
+
+修改后自动执行：
 ```bash
 cd "D:/MyOneDrive/OneDrive/桌面/QG/app-pwa"
-git add index.html && git commit -m "更新: <简要描述改动>" && git push
+git add . && git commit -m "更新: <描述>" && git push
 ```
+Netlify 站点 `https://poetic-longma-271572.netlify.app/` 30秒内刷新。
 
-推送后 Netlify 会自动重新部署，站点 `https://poetic-longma-271572.netlify.app/` 约 30 秒内刷新。
+## 数据位置
 
-## 项目结构
-
-- `index.html` — 全部前端代码（HTML + CSS + JS 数据）
-- `sw.js` — Service Worker 离线缓存
-- `manifest.json` — PWA 清单
-- `icons/` — App 图标
-
-## 重要数据位置
-
-| 内容 | 在 index.html 中搜索 |
-|------|-------------------|
-| 行程数据 | `const itinerary = [` |
-| 拍照姿势 | `const spotPoses = [` |
-| 通用造型 | `const universalPoses = [` |
-| 出发清单 | `const checklist = [` |
-| 避坑攻略 | `const tips = [` |
-| 预算数据 | `const budget = {` |
-| 天气数据 | `const weatherData = [` |
-| 配色主题 | `--primary:#4A90D9` |
+| 内容 | PWA (index.html) | 小程序 (utils/) |
+|------|-----------------|-----------------|
+| 行程 | `const itinerary = [` | `data.js` |
+| 拍照 | `const spotPoses = [` | `photo-data.js` |
+| 坐标 | `const spotCoords = {` | `data.js` |
+| 清单 | `const checklist = [` | `data.js` |
+| 配色 | `--primary:#4A90D9` | `app.wxss` |
