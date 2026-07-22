@@ -453,6 +453,23 @@ const spotCoords = {
   '卓尔山':[38.155,100.215],'门源':[37.376,101.620],'岗什卡雪峰':[37.502,101.412],'西宁曹家堡机场':[36.530,102.043]
 };
 
+// 住宿地坐标
+const stayCoords = {
+  '西宁市区':[36.617,101.778],'青海湖二郎剑':[36.576,100.433],'鸟岛营地':[36.980,99.870],
+  '大柴旦镇':[37.852,95.342],'水上雅丹':[37.572,93.413],'冷湖镇':[38.738,93.333],
+  '敦煌市区':[40.137,94.662],'沙洲夜市':[40.136,94.664],'沙漠露营基地':[40.078,94.665],
+  '张掖市区':[38.930,100.454],'丹霞小镇':[38.978,100.103],'祁连县':[38.182,100.245],
+  '阿柔部落':[38.120,100.300],'西宁':[36.617,101.778]
+};
+
+function getStayCoord(stay) {
+  if (!stay || stay === '—') return null;
+  for (const key of Object.keys(stayCoords)) {
+    if (stay.includes(key) || key.includes(stay)) return stayCoords[key];
+  }
+  return null;
+}
+
 function getSpotCoord(name) {
   if (spotCoords[name]) return spotCoords[name];
   for (const key of Object.keys(spotCoords)) {
@@ -513,7 +530,10 @@ function goDayDetail(day) {
   html += '<div class="drive-item">🚗<span class="drive-val">' + d.driveTime + '</span></div>';
   html += '<div class="drive-item">🛣️<span class="drive-val">' + d.driveDist + '</span></div>';
   html += '<div class="drive-item">🏠<span class="drive-val">' + (d.stay || '—') + '</span></div>';
-  html += '</div></div>';
+  html += '</div>';
+  const sCoord = getStayCoord(d.stay);
+  if (sCoord) html += '<div style="font-size:11px;color:var(--primary);cursor:pointer;margin-top:4px" onclick="navToSpot(' + sCoord[1] + ',' + sCoord[0] + ',\'' + (d.stay||'住宿').replace(/'/g,"\\'") + '\')">🧭 导航到住宿地</div>';
+  html += '</div>';
   html += '<div class="sec-hd"><span class="sec-title">📍 本日景点</span></div>';
 
   d.spots.forEach(s => {
@@ -541,7 +561,8 @@ function goDayDetail(day) {
     }
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">';
     const coord = getSpotCoord(s.name);
-    if (coord) html += '<span style="font-size:12px;color:var(--primary);cursor:pointer" onclick="event.stopPropagation();navToSpot(' + coord[1] + ',' + coord[0] + ',\'' + s.name + '\')">🧭 导航到此</span>';
+    const navAddr = (s.nav && s.nav !== '—') ? s.nav : s.name;
+    if (coord) html += '<span style="font-size:12px;color:var(--primary);cursor:pointer" onclick="event.stopPropagation();navToSpot(' + coord[1] + ',' + coord[0] + ',\'' + navAddr.replace(/'/g,"\\'") + '\')">🧭 导航</span>';
     else html += '<span></span>';
     html += '<span class="spot-arrow" style="margin:0">查看完整攻略›</span>';
     html += '</div></div>';
