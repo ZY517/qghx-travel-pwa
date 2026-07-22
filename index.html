@@ -533,6 +533,7 @@ function goDayDetail(day) {
   const sCoord = getStayCoord(d.stay);
   if (sCoord) html += ' <span style="font-size:11px;color:var(--primary);cursor:pointer" onclick="event.stopPropagation();navToSpot(' + sCoord[1] + ',' + sCoord[0] + ',\'' + (d.stay||'住宿').replace(/'/g,"\\'") + '\')">🧭</span>';
   html += '</div>';
+  html += '</div></div>'; // 关闭 drive-row 和 drive-card
   html += '<div class="sec-hd"><span class="sec-title">📍 本日景点</span></div>';
 
   d.spots.forEach(s => {
