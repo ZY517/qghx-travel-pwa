@@ -9,6 +9,8 @@
 <meta name="theme-color" content="#1A1A2E">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <title>青甘大环线自驾攻略</title>
 <style>
 :root {
@@ -264,6 +266,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 
   <div id="todaySection"></div>
 
+  <div class="sec-hd"><span class="sec-title">🗺️ 旅行地图</span><span class="sec-link" onclick="toggleMap()" id="mapToggle">收起</span></div>
+  <div id="mapContainer" style="height:280px;margin:0 14px 12px;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.04)"></div>
+
   <div class="sec-hd"><span class="sec-title">🌤️ 近三天天气</span></div>
   <div class="w-row" id="weatherRow"></div>
 
@@ -437,6 +442,32 @@ const weatherData = [
 const photoMap = {};
 spotPoses.forEach(p => { photoMap[p.spot] = p });
 
+// 景点经纬度坐标
+const spotCoords = {
+  '西宁':[36.617,101.778],'塔尔寺':[36.485,101.576],'青海湖':[36.576,100.433],'黑马河乡':[36.732,99.780],
+  '茶卡盐湖':[36.794,99.082],'大柴旦翡翠湖':[37.852,95.342],'G315 U型公路':[37.445,94.355],
+  '乌素特水上雅丹':[37.572,93.413],'西台双色湖':[37.517,93.358],'火星营地':[38.215,92.196],
+  '冷湖镇':[38.738,93.333],'黑独山':[38.780,93.200],'石油小镇':[39.324,94.337],'阳关':[39.930,94.060],
+  '敦煌':[40.137,94.662],'莫高窟':[40.037,94.804],'鸣沙山月牙泉':[40.086,94.670],
+  '嘉峪关':[39.802,98.216],'七彩丹霞':[38.978,100.103],'祁连草原':[38.182,100.245],
+  '卓尔山':[38.155,100.215],'门源':[37.376,101.620],'岗什卡雪峰':[37.502,101.412],'西宁曹家堡机场':[36.530,102.043]
+};
+
+function getSpotCoord(name) {
+  if (spotCoords[name]) return spotCoords[name];
+  for (const key of Object.keys(spotCoords)) {
+    if (name.includes(key) || key.includes(name)) return spotCoords[key];
+  }
+  return null;
+}
+
+function getRouteCoords() {
+  const route = [];
+  const order = ['西宁','塔尔寺','青海湖','茶卡盐湖','大柴旦翡翠湖','G315 U型公路','乌素特水上雅丹','西台双色湖','火星营地','黑独山','石油小镇','阳关','莫高窟','鸣沙山月牙泉','嘉峪关','七彩丹霞','祁连草原','卓尔山','门源','西宁'];
+  order.forEach(name => { const c = getSpotCoord(name); if (c) route.push(c); });
+  return route;
+}
+
 // ==================== APP LOGIC ====================
 let currentPage = 'home';
 let currentDay = null;
@@ -508,7 +539,12 @@ function goDayDetail(day) {
       html += '<div style="font-size:11px;margin-top:4px">' + (photo.drone ? '🛸 可飞无人机' : '🚫 禁飞无人机') + '</div>';
       html += '</div>';
     }
-    html += '<div class="spot-arrow">查看完整攻略›</div></div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">';
+    const coord = getSpotCoord(s.name);
+    if (coord) html += '<span style="font-size:12px;color:var(--primary);cursor:pointer" onclick="event.stopPropagation();navToSpot(' + coord[1] + ',' + coord[0] + ',\'' + s.name + '\')">🧭 导航到此</span>';
+    else html += '<span></span>';
+    html += '<span class="spot-arrow" style="margin:0">查看完整攻略›</span>';
+    html += '</div></div>';
   });
 
   html += '<div class="nav-row">';
@@ -745,6 +781,66 @@ function installApp() {
   }
 }
 
+// ==================== MAP ====================
+let map = null;
+let mapInitialized = false;
+let mapVisible = true;
+let userMarker = null;
+
+function toggleMap() {
+  mapVisible = !mapVisible;
+  document.getElementById('mapContainer').style.display = mapVisible ? 'block' : 'none';
+  document.getElementById('mapToggle').textContent = mapVisible ? '收起' : '展开';
+  if (mapVisible) { if (!mapInitialized) initMap(); else map.invalidateSize(); }
+}
+
+function initMap() {
+  if (mapInitialized) { map.invalidateSize(); return; }
+  const container = document.getElementById('mapContainer');
+  if (!container || container.offsetWidth === 0) return;
+
+  map = L.map('mapContainer', { attributionControl: false, zoomControl: true }).setView([38.5, 97], 6);
+
+  // 高德瓦片
+  L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+    subdomains: ['1','2','3','4'], maxZoom: 18
+  }).addTo(map);
+
+  // 路线
+  const route = getRouteCoords();
+  L.polyline(route, { color: '#E8734A', weight: 3, opacity: 0.8, dashArray: '8,6' }).addTo(map);
+
+  // 景点标记
+  const routeNames = ['西宁','塔尔寺','青海湖','茶卡盐湖','大柴旦翡翠湖','G315 U型公路','乌素特水上雅丹','西台双色湖','火星营地','黑独山','石油小镇','阳关','莫高窟','鸣沙山月牙泉','嘉峪关','七彩丹霞','祁连草原','卓尔山','门源','西宁'];
+  routeNames.forEach((name, i) => {
+    const c = getSpotCoord(name);
+    if (!c) return;
+    const marker = L.circleMarker(c, { radius: 6, fillColor: name === '西宁' ? '#5B8C5A' : '#4A90D9', color: '#fff', weight: 2, fillOpacity: 1 });
+    marker.bindPopup('<div style="text-align:center"><b>' + name + '</b><br><a href="javascript:void(0)" onclick="navToSpot(' + c[1] + ',' + c[0] + ',\'' + name + '\')" style="color:#4A90D9">🧭 导航到此</a></div>');
+    marker.addTo(map);
+  });
+
+  map.fitBounds(L.latLngBounds(route), { padding: [20, 20] });
+  mapInitialized = true;
+
+  // 定位
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      if (userMarker) map.removeLayer(userMarker);
+      userMarker = L.circleMarker([pos.coords.latitude, pos.coords.longitude], {
+        radius: 8, fillColor: '#27AE60', color: '#fff', weight: 2, fillOpacity: 1
+      }).addTo(map);
+      userMarker.bindPopup('📍 我的位置').openPopup();
+    }, () => {}, { enableHighAccuracy: true, timeout: 10000 });
+  }
+}
+
+// 导航跳转
+function navToSpot(lng, lat, name) {
+  const url = 'https://uri.amap.com/navigation?to=' + lng + ',' + lat + ',' + encodeURIComponent(name) + '&mode=car&callnative=1';
+  window.open(url, '_blank');
+}
+
 // ==================== INIT ====================
 function init() {
   renderHome();
@@ -753,14 +849,20 @@ function init() {
   renderChecklist();
   renderTips();
   renderBudget();
-  // Register service worker
+  // Init map with delay to ensure DOM is rendered
+  setTimeout(() => { if (currentPage === 'home') initMap(); }, 300);
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
-  // Countdown timer
   setInterval(renderHome, 60000);
 }
-init();
+
+// Re-init map when switching to home
+const origSwitchTab = switchTab;
+switchTab = function(page) {
+  origSwitchTab(page);
+  if (page === 'home') setTimeout(() => initMap(), 400);
+};
 </script>
 </body>
 </html>
