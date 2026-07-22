@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="青甘攻略">
+<meta name="theme-color" content="#1A1A2E">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>青甘大环线自驾攻略</title>
+<style>
+:root {
+  --primary:#4A90D9;--accent:#E8734A;--green:#5B8C5A;--gold:#D4A853;
+  --bg:#F5F6FA;--card:#fff;--text:#2C3E50;--text2:#7F8C8D;--border:#ECF0F1;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;font-size:14px;color:var(--text);background:var(--bg);-webkit-tap-highlight-color:transparent;padding-bottom:64px;overflow-x:hidden}
+.page{display:none}
+.page.active{display:block}
+.card{background:var(--card);border-radius:14px;padding:16px;margin:0 14px 10px;box-shadow:0 2px 10px rgba(0,0,0,0.04)}
+.tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;margin-right:6px}
+.tag-blue{background:#EBF5FB;color:#2E86C1}
+.tag-orange{background:#FEF5E7;color:#E67E22}
+.tag-green{background:#EAFAF1;color:#27AE60}
+.tag-red{background:#FDEDEC;color:#E74C3C}
+.tag-purple{background:#F4ECF7;color:#8E44AD}
+
+/* TabBar */
+.tabbar{position:fixed;bottom:0;left:0;right:0;height:56px;background:#fff;display:flex;border-top:1px solid #eee;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tabbar-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:#999;text-decoration:none;cursor:pointer}
+.tabbar-item.active{color:#4A90D9}
+.tabbar-icon{font-size:22px;margin-bottom:2px}
+
+/* Navigation bar */
+.navbar{position:sticky;top:0;background:#1A1A2E;color:#fff;text-align:center;padding:12px 16px;font-size:17px;font-weight:700;z-index:50;padding-top:calc(12px + env(safe-area-inset-top))}
+
+/* Hero */
+.hero{height:200px;background:linear-gradient(135deg,#1A1A2E,#16213E,#0F3460,#4A90D9);display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:-30%;background:radial-gradient(ellipse at 30% 70%,rgba(232,115,74,0.2),transparent 55%),radial-gradient(ellipse at 70% 20%,rgba(74,144,217,0.25),transparent 55%);animation:shimmer 8s ease-in-out infinite}
+@keyframes shimmer{0%,100%{transform:translate(0,0)}50%{transform:translate(1%,-1%)}}
+.hero-content{position:relative;z-index:1}
+.hero-title{font-size:38px;font-weight:800;letter-spacing:6px;margin-bottom:4px}
+.hero-sub{font-size:13px;opacity:0.8}
+.hero-date{display:inline-block;background:rgba(255,255,255,0.18);padding:3px 14px;border-radius:14px;font-size:12px;margin-top:6px}
+.cd{display:flex;align-items:center;justify-content:center;margin-top:8px;gap:2px}
+.cd-l{font-size:12px;opacity:0.6}
+.cd-n{font-size:24px;font-weight:800;color:var(--gold)}
+.cd-u{font-size:11px;opacity:0.6;margin-right:4px}
+
+/* Badge row */
+.badges{display:flex;margin:10px 12px 6px;gap:6px}
+.badge{flex:1;display:flex;align-items:center;justify-content:center;padding:10px 4px;border-radius:10px;background:#fff;border:1px solid #eee;font-size:11px;font-weight:600;gap:3px}
+.badge-icon{font-size:14px}
+
+/* Section header */
+.sec-hd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 14px 8px}
+.sec-title{font-size:17px;font-weight:700}
+.sec-link{font-size:13px;color:var(--primary)}
+
+/* Urgent bar */
+.urgent{margin:0 12px 10px;background:linear-gradient(90deg,#FFF5F5,#FDEDEC);border:1px solid #F5B7B1;border-radius:8px;padding:10px 14px;text-align:center;font-size:12px;color:#C0392B;font-weight:600;cursor:pointer}
+
+/* Today card */
+.today-card{margin:0 14px;background:#fff;border-radius:14px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,0.04);border-left:5px solid var(--primary);cursor:pointer}
+.today-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.today-icon{font-size:34px}
+.today-title{font-size:17px;font-weight:700}
+.today-desc{font-size:13px;color:var(--text2);margin-top:2px}
+.today-meta{display:flex;gap:16px;margin-bottom:8px;font-size:12px;color:#95A5A6}
+.today-spots{display:flex;flex-wrap:wrap;gap:8px}
+.today-spot{display:flex;align-items:center;gap:5px}
+.today-spot::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--primary);flex-shrink:0}
+.today-spot-name{font-size:14px;font-weight:500}
+.today-spot-type{font-size:11px;color:#BDC3C7}
+
+/* Weather row */
+.w-row{display:flex;margin:0 14px 12px;gap:8px}
+.w-card{flex:1;display:flex;flex-direction:column;align-items:center;background:#fff;border-radius:10px;padding:12px 6px;box-shadow:0 1px 6px rgba(0,0,0,0.03);font-size:11px}
+.w-icon{font-size:24px;margin:4px 0}
+.w-temp{font-size:15px;font-weight:700}
+
+/* Quick grid */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 14px 14px}
+.quick-card{background:#fff;border-radius:14px;padding:20px 14px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.04);cursor:pointer;transition:transform 0.15s}
+.quick-card:active{transform:scale(0.97)}
+.quick-icon{font-size:36px;display:block;margin-bottom:6px}
+.quick-title{font-size:15px;font-weight:700}
+.quick-desc{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* Itinerary page */
+.day-card{display:flex;margin:0 14px 10px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.04);cursor:pointer}
+.day-badge{width:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 10px;color:#fff;flex-shrink:0;font-weight:800;font-size:20px}
+.day-badge-date{font-size:10px;opacity:0.85;margin-top:2px}
+.day-body{flex:1;padding:14px 14px 14px 0}
+.day-hd{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.day-hd-icon{font-size:24px}
+.day-hd-title{font-size:16px;font-weight:700}
+.day-hd-desc{font-size:12px;color:var(--text2);margin-top:2px}
+.day-meta{display:flex;gap:12px;font-size:11px;color:#95A5A6;margin-bottom:6px}
+.day-spots{display:flex;flex-wrap:wrap;gap:6px}
+.day-spot{display:flex;align-items:center;gap:4px}
+.day-spot-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.day-spot-name{font-size:13px}
+.day-spot-type{font-size:10px;color:#BDC3C7}
+
+/* Day detail */
+.detail-hero{padding:30px 20px 24px;color:#fff}
+.detail-hero-day{font-size:13px;opacity:0.8}
+.detail-hero-date{font-size:14px;opacity:0.9;margin-top:2px}
+.detail-hero-title{font-size:26px;font-weight:800;margin-top:8px}
+.detail-hero-desc{font-size:14px;opacity:0.85;margin-top:4px;line-height:1.5}
+.drive-card{margin-top:-16px;position:relative;z-index:1}
+.drive-row{display:flex;gap:8px}
+.drive-item{flex:1;display:flex;align-items:center;gap:6px;font-size:11px}
+.drive-item span{display:block}
+.drive-val{font-weight:600;color:var(--text)}
+
+.spot-card-item{cursor:pointer;position:relative}
+.spot-card-item:active{opacity:0.9}
+.spot-card-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.spot-card-name{font-size:16px;font-weight:700}
+.spot-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.meta-tag{font-size:11px;color:var(--text2);background:#F5F6FA;padding:2px 8px;border-radius:6px}
+.photo-inline{margin-top:10px;padding:12px 14px;background:linear-gradient(135deg,#F8F4F0,#FDF8F5);border-radius:10px;border:1px solid #EDE4DC}
+.photo-inline-hd{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px}
+.pi-pose{display:flex;gap:6px;padding:4px 0;font-size:12px}
+.pi-pose+.pi-pose{border-top:1px solid #EDE4DC}
+.pi-pose-num{font-weight:700;color:#8E7C65;flex-shrink:0}
+.pi-pose-title{font-weight:600;color:#5D4E37}
+.pi-pose-angle{color:#8E7C65;font-size:11px}
+.spot-arrow{text-align:right;font-size:13px;color:var(--primary);margin-top:10px}
+
+/* Photo page */
+.search-wrap{display:flex;align-items:center;background:#fff;border-radius:20px;padding:8px 16px;margin:10px 14px;box-shadow:0 1px 6px rgba(0,0,0,0.04)}
+.search-wrap input{flex:1;border:none;outline:none;font-size:14px;background:transparent}
+.sub-tabs{display:flex;margin:0 14px 10px;gap:8px}
+.sub-tab{flex:1;text-align:center;padding:10px 0;border-radius:10px;background:#fff;font-size:13px;color:var(--text2);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.03)}
+.sub-tab.active{background:var(--primary);color:#fff;font-weight:600}
+
+.spot-pose-card{margin:0 14px 10px}
+.spot-pose-hd{margin-bottom:8px}
+.spot-pose-name{font-size:17px;font-weight:700}
+.pose-item{padding:10px 0}
+.pose-item+.pose-item{border-top:1px solid #F0F2F5}
+.pose-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.pose-num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pose-name{font-size:15px;font-weight:700}
+.pose-desc{font-size:13px;color:#34495E;line-height:1.6;margin-bottom:4px}
+.pose-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--text2)}
+
+/* Universal poses */
+.uni-list{display:flex;flex-direction:column;margin:0 14px;gap:10px}
+.uni-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,0.04)}
+.uni-hd{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.uni-icon{font-size:32px;flex-shrink:0}
+.uni-title{font-size:15px;font-weight:700}
+.uni-desc{font-size:13px;color:#34495E;line-height:1.6;margin-bottom:6px}
+.uni-bottom{border-top:1px solid #F5F6FA;padding-top:6px;font-size:11px;color:var(--text2)}
+
+/* Checklist */
+.progress-wrap{height:12px;background:#ECF0F1;border-radius:6px;overflow:hidden;margin:12px 14px}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--green));border-radius:6px;transition:width 0.3s}
+.progress-text{text-align:center;font-size:12px;color:var(--text2);margin-bottom:8px}
+.cat-hd{display:flex;align-items:center;gap:6px;padding:12px 14px 4px;font-size:14px;font-weight:700;background:var(--bg)}
+.check-row{display:flex;align-items:center;padding:12px 14px;background:#fff;border-bottom:1px solid #F8F9FA;cursor:pointer;gap:10px}
+.check-row.checked{opacity:0.6}
+.check-row.checked .check-name{text-decoration:line-through;color:#BDC3C7}
+.check-box{width:22px;height:22px;border:2px solid #BDC3C7;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;transition:0.2s}
+.check-box.on{background:#27AE60;border-color:#27AE60}
+.check-name{flex:1;font-size:14px}
+.check-imp{font-size:10px;color:#E74C3C;background:#FDEDEC;padding:2px 8px;border-radius:8px}
+
+/* Tips page */
+.tip-row{display:flex;padding:14px 16px;background:#fff;border-bottom:1px solid #F8F9FA;gap:10px;font-size:14px;line-height:1.6}
+.tip-row.top{background:#FFFBF0;border-left:4px solid #E74C3C;font-weight:600}
+.tip-emoji{flex-shrink:0;font-size:18px}
+
+/* Budget page */
+.total-card{margin:14px;background:linear-gradient(135deg,#1A1A2E,#2C3E50);border-radius:16px;padding:30px 20px;text-align:center;color:#fff}
+.total-label{font-size:14px;opacity:0.7}
+.total-amount{font-size:22px;font-weight:800;color:var(--gold);display:block;margin-top:10px}
+.budget-row{display:flex;justify-content:space-between;padding:12px 0;font-size:14px}
+.budget-row+.budget-row{border-top:1px solid var(--border)}
+.budget-range{font-weight:700;color:var(--accent)}
+.saving-tip{padding:8px 0;font-size:13px;line-height:1.6;display:flex;gap:6px}
+.saving-tip+.saving-tip{border-top:1px solid #F8F9FA}
+
+/* Astro card */
+.astro-card{background:linear-gradient(135deg,#0F1730,#1A2744)!important;color:rgba(255,255,255,0.85)}
+.astro-card .sec-title{color:var(--gold)}
+.astro-line{padding:10px 0;font-size:13px;line-height:1.6}
+.astro-line+.astro-line{border-top:1px solid rgba(255,255,255,0.1)}
+.astro-label{font-weight:600;color:#D4A853;display:block;margin-bottom:2px}
+
+/* Back button */
+.back-btn{display:flex;align-items:center;gap:4px;font-size:14px;color:var(--primary);cursor:pointer;padding:8px 14px}
+
+/* Nav buttons */
+.nav-row{display:flex;justify-content:space-between;margin:14px;gap:10px}
+.nav-btn{padding:12px 24px;background:#fff;border-radius:20px;font-size:14px;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,0.05);cursor:pointer;border:none}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 0;color:#BDC3C7;font-size:15px}
+
+/* Back to top spacer */
+.spacer{height:20px}
+
+/* Install banner */
+.install-banner{display:none;position:fixed;top:0;left:0;right:0;background:#1A1A2E;color:#fff;padding:12px 16px;text-align:center;font-size:13px;z-index:200;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- Install Banner -->
+<div class="install-banner" id="installBanner" onclick="installApp()">
+  📲 点击此处安装到手机桌面，像原生App一样使用
+</div>
+
+<!-- TabBar -->
+<nav class="tabbar" id="tabbar">
+  <div class="tabbar-item active" data-page="home" onclick="switchTab('home')">
+    <span class="tabbar-icon">🏠</span>首页
+  </div>
+  <div class="tabbar-item" data-page="itinerary" onclick="switchTab('itinerary')">
+    <span class="tabbar-icon">🗺️</span>行程
+  </div>
+  <div class="tabbar-item" data-page="photo" onclick="switchTab('photo')">
+    <span class="tabbar-icon">📸</span>拍照
+  </div>
+  <div class="tabbar-item" data-page="checklist" onclick="switchTab('checklist')">
+    <span class="tabbar-icon">✅</span>清单
+  </div>
+  <div class="tabbar-item" data-page="tips" onclick="switchTab('tips')">
+    <span class="tabbar-icon">💡</span>避坑
+  </div>
+</nav>
+
+<!-- ========== PAGE: HOME ========== -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-title">青甘大环线</div>
+      <div class="hero-sub">青海·甘肃 自驾露营</div>
+      <div class="hero-date">2026年8月15日 出发</div>
+      <div class="cd">
+        <span class="cd-l">距出发</span>
+        <span class="cd-n" id="cd-d">0</span><span class="cd-u">天</span>
+        <span class="cd-n" id="cd-h">0</span><span class="cd-u">时</span>
+        <span class="cd-n" id="cd-m">0</span><span class="cd-u">分</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="badges">
+    <div class="badge"><span class="badge-icon">🌙</span>银河窗口</div>
+    <div class="badge"><span class="badge-icon">🌸</span>花期尾声</div>
+    <div class="badge"><span class="badge-icon">🌡️</span>15~30°/3~15°</div>
+    <div class="badge"><span class="badge-icon">☀️</span>SPF50+必涂</div>
+  </div>
+
+  <div class="urgent" onclick="switchTab('tips')">🔔 莫高窟A类票 7月16日早上8:00开抢！点击查看→</div>
+
+  <div id="todaySection"></div>
+
+  <div class="sec-hd"><span class="sec-title">🌤️ 近三天天气</span></div>
+  <div class="w-row" id="weatherRow"></div>
+
+  <div class="sec-hd"><span class="sec-title">📌 快速导航</span></div>
+  <div class="quick-grid">
+    <div class="quick-card" onclick="switchTab('itinerary')"><span class="quick-icon">🗺️</span><span class="quick-title">每日行程</span><span class="quick-desc">10天详细安排</span></div>
+    <div class="quick-card" onclick="switchTab('photo')"><span class="quick-icon">📸</span><span class="quick-title">拍照攻略</span><span class="quick-desc">姿势·机位·参数</span></div>
+    <div class="quick-card" onclick="switchTab('checklist')"><span class="quick-icon">✅</span><span class="quick-title">出发清单</span><span class="quick-desc">逐项打勾检查</span></div>
+    <div class="quick-card" onclick="switchTab('budget')"><span class="quick-icon">💰</span><span class="quick-title">预算参考</span><span class="quick-desc">省钱技巧+租车</span></div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ========== PAGE: ITINERARY ========== -->
+<div class="page" id="page-itinerary">
+  <div class="navbar">🗺️ 行程总览</div>
+  <div style="padding:10px 14px;font-size:12px;color:var(--text2);text-align:center">西宁→青海湖→茶卡→大柴旦→敦煌→张掖→祁连→西宁 · 约3000km</div>
+  <div id="dayList"></div>
+  <div class="spacer"></div>
+</div>
+
+<!-- Day Detail (overlay) -->
+<div class="page" id="page-daydetail">
+  <div class="navbar" id="detailNav">每日详情</div>
+  <div id="dayDetailContent"></div>
+</div>
+
+<!-- ========== PAGE: PHOTO ========== -->
+<div class="page" id="page-photo">
+  <div class="navbar">📸 拍照攻略</div>
+  <div class="search-wrap">
+    <span>🔍</span>
+    <input type="search" id="photoSearch" placeholder="搜索景点或姿势，如：红裙、剪影、无人机..." oninput="filterPhoto()">
+  </div>
+  <div class="sub-tabs">
+    <div class="sub-tab active" onclick="switchPhotoTab('spots',this)">🏔️ 景点机位</div>
+    <div class="sub-tab" onclick="switchPhotoTab('universal',this)">🎯 通用造型</div>
+    <div class="sub-tab" onclick="switchPhotoTab('astro',this)">🌌 星空参数</div>
+  </div>
+  <div id="photoSpotList"></div>
+  <div id="photoUniList" style="display:none"></div>
+  <div id="photoAstro" style="display:none"></div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ========== PAGE: CHECKLIST ========== -->
+<div class="page" id="page-checklist">
+  <div class="navbar">✅ 出发清单</div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+  <div class="progress-text" id="progressText">已完成 0 项（0%）</div>
+  <div id="checklistContent"></div>
+  <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;cursor:pointer" onclick="resetChecklist()">🔄 重置清单</div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ========== PAGE: TIPS ========== -->
+<div class="page" id="page-tips">
+  <div class="navbar">💡 避坑攻略 TOP20</div>
+  <div id="tipsContent"></div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ========== PAGE: BUDGET ========== -->
+<div class="page" id="page-budget">
+  <div class="navbar">💰 预算参考</div>
+  <div id="budgetContent"></div>
+  <div class="spacer"></div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const itinerary = [
+  {day:0,date:'8月14日',title:'抵达西宁',icon:'✈️',color:'#4A90D9',desc:'飞抵西宁，取车，适应海拔，采购物资',driveTime:'—',driveDist:'—',stay:'西宁市区',spots:[{id:'s0_1',name:'西宁曹家堡机场',type:'交通',nav:'西宁曹家堡机场',ticket:'—',needBook:false,time:'—',duration:'—',notes:['取车后先在市区适应海拔（2260m）','第一天不要洗澡洗头、不喝酒、不剧烈运动','去万达或大十字超市采购矿泉水×2箱、零食、氧气瓶×4']},{id:'s0_2',name:'莫家街美食',type:'美食',nav:'西宁莫家街',ticket:'—',needBook:false,time:'傍晚',duration:'1-2小时',notes:['必吃：手抓羊肉、青海老酸奶、甜醅、酿皮、炕锅羊肉','莫家街是西宁最集中的美食街','推荐店铺：拜家酿皮、德禄酸奶']}]},
+  {day:1,date:'8月15日',title:'西宁→塔尔寺→青海湖',icon:'🏔️',color:'#5B8C5A',desc:'藏传佛教圣地+中国最美湖泊',driveTime:'约3小时',driveDist:'180km',stay:'青海湖二郎剑/鸟岛营地',spots:[{id:'s1_1',name:'塔尔寺',type:'人文/宗教',nav:'塔尔寺景区游客中心',ticket:'70元/人',needBook:false,time:'8:00-17:30',duration:'2-3小时',notes:['殿内禁止拍照','着装忌露肩露腿，进殿脱帽','顺时针转经筒','不要踩门槛','酥油花馆值得细看'],photo:{tip:'红墙金顶，藏式建筑群，适合人文纪实风格',wear:'素色长裙或休闲装'}},{id:'s1_2',name:'青海湖',type:'自然/湖泊',nav:'青海湖二郎剑景区/黑马河乡',ticket:'二郎剑100元/人；黑马河免费',needBook:false,time:'下午4点-日落（约20:00）',duration:'2-3小时',notes:['湖边风极大，穿好冲锋衣','油菜花田拍照先问是否收费','不要随意开车进草地','黑马河段更原生态且免费','海拔3200m，注意高反'],photo:{tip:'湖+油菜花+远山三层构图',wear:'白色连衣裙+草帽'}}]},
+  {day:2,date:'8月16日',title:'青海湖日出→茶卡盐湖→大柴旦',icon:'🌅',color:'#E8734A',desc:'青海湖日出+天空之镜+穿越柴达木',driveTime:'约5.5小时',driveDist:'400km',stay:'大柴旦镇（星空营地推荐）',spots:[{id:'s2_1',name:'青海湖日出',type:'自然',nav:'黑马河乡',ticket:'免费',needBook:false,time:'8月日出约6:20-6:40',duration:'1小时',notes:['提前30分钟到','早晨极冷（5-10℃），穿冲锋衣+抓绒','日出后回酒店补觉再出发'],photo:{tip:'湖面日出倒影，长焦压缩太阳和湖面',wear:'保暖为主'}},{id:'s2_2',name:'茶卡盐湖',type:'自然/盐湖',nav:'茶卡盐湖景区',ticket:'168元套票；浙江籍免门票',needBook:true,bookInfo:'建议提前1-3天在OTA平台购票',time:'7:00-18:30（最佳：9点前/16点后）',duration:'2-3小时',notes:['看天气！阴天/大风效果差','穿红裙最出片','下湖必须穿鞋套','盐水腐蚀性强，相机手机拿稳','小火车坐到底站往回玩人更少'],photo:{tip:'无风时水面如镜，红色最强对比',wear:'红色长裙！'}}]},
+  {day:3,date:'8月17日',title:'翡翠湖→U型公路→水上雅丹',icon:'💎',color:'#2E86C1',desc:'蒂芙尼蓝盐湖+最美公路+水上魔鬼城',driveTime:'约4小时',driveDist:'350km',stay:'水上雅丹附近营地/大柴旦镇',spots:[{id:'s3_1',name:'大柴旦翡翠湖',type:'自然/盐湖',nav:'大柴旦翡翠湖景区',ticket:'50元+区间车60元',needBook:false,time:'上午8-10点最佳',duration:'2-3小时',notes:['无人机必须！上帝视角绝了','推荐2号湖（蒂芙尼蓝）、3号湖（祖母绿）、4号湖（镜面）','不要随意下水','穿白色或亮色衣服最出片','盐碱地伤鞋'],photo:{tip:'无人机上帝视角，湖色分层最佳',wear:'白色/黄色/黑色纯色裙'}},{id:'s3_2',name:'G315 U型公路',type:'公路',nav:'G315国道778里程碑附近',ticket:'免费',needBook:false,time:'上午或傍晚',duration:'30分钟',notes:['禁止在路中间拍照！交警真的会来！','在路边安全区域拍摄','长焦镜头压缩画面效果更好','大货车多，注意安全'],photo:{tip:'长焦压缩公路纹理，牛仔工装风最搭',wear:'牛仔/工装风+墨镜'}},{id:'s3_3',name:'乌素特水上雅丹',type:'自然/雅丹',nav:'乌素特水上雅丹地质公园',ticket:'118元/人',needBook:false,time:'傍晚日落时分',duration:'2-3小时',notes:['可体验越野摩托深入腹地（约300元/车）','夜晚观星条件极好（无光污染）','景区住宿贵且少，建议提前订','蚊虫多，带驱蚊水','无人机拍摄绝佳'],photo:{tip:'日落时雅丹剪影+湖水反光，航拍最震撼',wear:'黑色/红色'}}]},
+  {day:4,date:'8月18日',title:'双色湖→火星营地→冷湖',icon:'🚀',color:'#8E44AD',desc:'一半蓝一半绿的公路+俄博梁外星地貌',driveTime:'约5小时',driveDist:'400km',stay:'冷湖镇',spots:[{id:'s4_1',name:'西台双色湖',type:'自然/湖泊',nav:'西台吉乃尔湖（G315穿湖而过）',ticket:'免费',needBook:false,time:'路过停留',duration:'20-30分钟',notes:['公路两侧湖水颜色不同','航拍最佳','路边停车注意安全'],photo:{tip:'无人机俯拍公路两侧双色湖水',wear:'休闲'}},{id:'s4_2',name:'火星营地·俄博梁雅丹',type:'自然/雅丹',nav:'冷湖火星营地',ticket:'参观免费',needBook:true,bookInfo:'进入俄博梁需在火星营地登记报备',time:'傍晚光影最佳',duration:'2-3小时',notes:['无人区路段！出发前加满油！带足水和食物！','手机信号弱/无，提前下载离线地图','碎石路面，SUV或越野车更安全','不要偏离主路太远，容易迷路'],photo:{tip:'傍晚低角度光，雅丹纹理分明',wear:'机能风/暗黑风'}}]},
+  {day:5,date:'8月19日',title:'黑独山→石油小镇→阳关→敦煌',icon:'🌑',color:'#2C3E50',desc:'月球表面+废墟电影感+西出阳关+抵达敦煌',driveTime:'约4小时',driveDist:'350km',stay:'敦煌市区（沙洲夜市附近）',spots:[{id:'s5_1',name:'黑独山',type:'自然/地貌',nav:'黑独山（冷湖镇以南约20km）',ticket:'免费',needBook:false,time:'傍晚光影最好',duration:'1-1.5小时',notes:['黑色山体+风化地貌，月球表面既视感','穿暗黑风/机能风拍照最强','风大，注意防沙','无人机拍摄绝佳'],photo:{tip:'暗黑风人像，月球表面背景',wear:'暗黑风/机能风'}},{id:'s5_2',name:'阿克塞石油小镇',type:'人文/废墟',nav:'阿克塞博罗转井镇',ticket:'约60元/人',needBook:false,time:'—',duration:'1-1.5小时',notes:['《九层妖塔》《西风烈》取景地','废墟风格出片','傍晚光影最佳'],photo:{tip:'废墟风，工业感与荒凉感并存',wear:'工装/暗黑风'}},{id:'s5_3',name:'阳关遗址',type:'人文/历史',nav:'阳关遗址',ticket:'50元/人',needBook:false,time:'—',duration:'1-1.5小时',notes:['西出阳关无故人','可体验通关文牒出关仪式','戈壁日落壮观']}]},
+  {day:6,date:'8月20日',title:'莫高窟→鸣沙山月牙泉',icon:'🏛️',color:'#D4A853',desc:'千年壁画艺术+沙漠落日+星空',driveTime:'约30分钟',driveDist:'25km',stay:'敦煌市区/沙漠露营基地',spots:[{id:'s6_1',name:'莫高窟',type:'人文/世界遗产',nav:'莫高窟数字展示中心（不是直接到洞窟！）',ticket:'A类票238元（8洞窟+电影）/B类票100元（4洞窟）',needBook:true,bookInfo:'必须提前30天在官网mgk.org.cn或微信小程序抢票！A类票每日限额6000张！',time:'8:00-18:00',duration:'3-4小时',notes:['A类票7月16号早上定闹钟抢！','洞窟内绝对禁止拍照！手机也不行！','推荐洞窟：96窟(大佛)、45窟(最美菩萨)、148窟(涅槃佛)','参观前看纪录片《敦煌》做功课','带上薄外套，洞窟内温度低'],photo:{tip:'洞窟内禁止拍照！外景可在九层楼前打卡',wear:'素色+薄外套'}},{id:'s6_2',name:'鸣沙山月牙泉',type:'自然/沙漠',nav:'鸣沙山月牙泉景区（中门停车场）',ticket:'110元/人（3日内有效可多次进出）',needBook:true,bookInfo:'建议提前在OTA平台购票',time:'下午5点后（避开高温），日落约20:00',duration:'3-4小时',notes:['骑骆驼100元/人（约40分钟）','光脚爬沙山体验最好','带充足的水！沙山很耗体力','相机注意防沙！带密封袋','沙洲夜市晚上必去：驴肉黄面、杏皮水'],photo:{tip:'日落剪影+骆驼队+月牙泉全景',wear:'红色长裙或汉服飞天'}}]},
+  {day:7,date:'8月21日',title:'敦煌→嘉峪关→七彩丹霞',icon:'🏰',color:'#E74C3C',desc:'天下第一雄关+彩虹山日落',driveTime:'约6.5小时',driveDist:'610km',stay:'张掖市区/丹霞小镇',spots:[{id:'s7_1',name:'嘉峪关关城',type:'人文/历史',nav:'嘉峪关关城景区',ticket:'110元/人',needBook:false,time:'—',duration:'1.5-2小时',notes:['城楼可以登上去','中午很晒，注意防晒']},{id:'s7_2',name:'张掖七彩丹霞',type:'自然/丹霞',nav:'张掖七彩丹霞景区（北门或西门）',ticket:'93元/人（门票+观光车）',needBook:true,bookInfo:'建议提前在OTA平台购票',time:'日落前2小时进场（约18:00）',duration:'2-3小时',notes:['景区内全面禁飞无人机！','4号观景台（虹霞台）看日落最佳','雨后初晴色彩最艳丽','观光车单向行驶，按顺序游览','穿纯色衣服（白/黑）和丹霞对比最强'],photo:{tip:'日落暖光打在彩色岩层上，4号台最佳',wear:'白色/黑色纯色裙'}}]},
+  {day:8,date:'8月22日',title:'张掖→祁连草原→卓尔山',icon:'🌿',color:'#27AE60',desc:'227最美公路+东方小瑞士',driveTime:'约3.5小时',driveDist:'280km',stay:'祁连县/阿柔部落寻鹿山庄',spots:[{id:'s8_1',name:'祁连山草原',type:'自然/草原',nav:'祁连山草原（227国道沿线即草原）',ticket:'沿途免费；进牧民草场可能收费10-20元',needBook:false,time:'全天',duration:'1-2小时',notes:['227国道沿线是最美草原公路','可以骑马（约50-100元）','8月草原仍然碧绿','远处是岗什卡雪峰'],photo:{tip:'草原+雪山+蓝天三层构图',wear:'白色碎花裙'}},{id:'s8_2',name:'卓尔山',type:'自然/丹霞+草原',nav:'卓尔山景区',ticket:'40元/人',needBook:false,time:'傍晚日落前',duration:'2小时',notes:['东方小瑞士，丹霞+草原+雪山同框','海拔约2800m，走路慢一点','傍晚光线最佳'],photo:{tip:'丹霞红+草原绿+雪山白',wear:'白裙'}}]},
+  {day:9,date:'8月23日',title:'祁连→门源→西宁',icon:'🌸',color:'#E91E63',desc:'岗什卡雪峰远观+门源（花期末尾）+返回西宁',driveTime:'约4.5小时',driveDist:'300km',stay:'西宁市区',spots:[{id:'s9_1',name:'门源百里油菜花海',type:'自然/花海',nav:'门源百里油菜花海/圆山观景台',ticket:'观景台约10-20元/人',needBook:false,time:'—',duration:'1-2小时',notes:['8月23号花基本谢了！','不要抱太大期望','岗什卡雪峰可以作为替代看点']},{id:'s9_2',name:'岗什卡雪峰（远观）',type:'自然/雪山',nav:'岗什卡雪峰景区（或227国道沿途远观）',ticket:'远观免费',needBook:false,time:'路过远观',duration:'30分钟',notes:['8月山顶仍有积雪','不需要攀登，远观即可']}]},
+  {day:10,date:'8月24日',title:'西宁返程',icon:'👋',color:'#7F8C8D',desc:'还车，逛西宁市区，买特产，返程',driveTime:'—',driveDist:'—',stay:'—',spots:[{id:'s10_1',name:'西宁市区自由行',type:'市区',nav:'—',ticket:'—',needBook:false,time:'—',duration:'半天',notes:['东关清真大寺（免费）','青海省博物馆（免费，需预约）','买特产去莫家街：牦牛肉干、枸杞、青稞酒','别在景区买特产！']}]}
+];
+
+const spotPoses = [
+  {id:'p1',spot:'青海湖',keyword:'青海湖 湖泊 日出 日落 油菜花',alias:'qinghaihu qhh 青海 海边 湖边 湖景',bestTime:'日出(6:30)/日落(20:00)',drone:true,poses:[{title:'花海背影',desc:'站在油菜花田小路上，背对镜头走向湖的方向，裙摆自然飘动。摄影师站在身后略低角度仰拍，把花田、人物、湖面、蓝天四层全部收入画面。长焦压缩空间感最佳。',angle:'低角度仰拍·70-200mm长焦',tip:'走路时回头看镜头抓拍，更自然'},{title:'湖边侧坐',desc:'侧身坐在湖边石头上，双腿并拢微曲，一只手自然撑在身后，另一只手轻抚被风吹乱的头发。摄影师在侧面同一水平高度，广角把湖面拉宽。',angle:'平视·16-35mm广角',tip:'等一阵风吹起头发时按下快门'},{title:'牵手剪影',desc:'两人手牵手站在湖边，面对湖面，太阳在正前方。摄影师在正后方低角度，用天空做背景拍出纯剪影。',angle:'低角度逆光·24-70mm',tip:'两人之间留一点距离，轮廓更清晰'}]},
+  {id:'p2',spot:'茶卡盐湖',keyword:'茶卡盐湖 天空之镜 倒影 红裙',alias:'chakayanhu ckyh 茶卡 天空之镜 盐湖 镜面',bestTime:'上午9点前/下午4点后（无风）',drone:true,poses:[{title:'镜面站姿',desc:'穿着红裙赤脚站在浅水中，双脚并拢，身体微微侧向一边，裙摆自然垂入水面。低头看水中的倒影，双手自然垂在身体两侧。等水面完全平静时拍摄，倒影清晰如镜。',angle:'低角度平视·24mm广角',tip:'站定后等30秒让水面波纹消失'},{title:'走向深处',desc:'从浅水区向盐湖深处缓缓走去，只拍背影。红裙在水面上的倒影与实物形成完美对称。留白构图，人物放在画面下方1/3。',angle:'高角度俯拍·35mm',tip:'迈小步慢走，水花越小倒影越清晰'},{title:'小火车旁',desc:'站在废弃铁轨或小火车旁，单手扶栏杆，侧脸看远方。铁轨的延伸感制造画面纵深。',angle:'平视·50mm',tip:'铁轨引导线指向人物'}]},
+  {id:'p3',spot:'大柴旦翡翠湖',keyword:'翡翠湖 蒂芙尼蓝 航拍 无人机',alias:'dachaidan dcd 翡翠湖 feicuihu 柴旦 彩色湖',bestTime:'上午8-10点（湖色最分明）',drone:true,poses:[{title:'无人机俯拍',desc:'人站在不同颜色湖面之间的盐埂上，双臂张开呈T字型。无人机从正上方垂直俯拍，人物成为画面中的点状元素，周围是蒂芙尼蓝和祖母绿的湖水。',angle:'无人机垂直俯拍·50-100m高度',tip:'穿白色或黄色衣服，和蓝色湖水形成对比'},{title:'湖边蹲姿',desc:'蹲在湖边近距离拍摄，手伸进画面轻触水面。对焦在水面的涟漪上，人物作为背景虚化。',angle:'低角度贴近水面·50mm',tip:'用偏光镜消除水面反光'}]},
+  {id:'p4',spot:'G315 U型公路',keyword:'U型公路 G315 公路大片 牛仔 长焦',alias:'g315 315 315国道 u型公路 u型 公路 公路片 最美公路',bestTime:'上午/傍晚（光线斜射纹理最明显）',drone:true,poses:[{title:'公路行走',desc:'站在路边安全区域，沿着公路方向行走。摄影师在远处用长焦压缩空间，让公路的U型弧度与人物叠加。注意！绝对不要站到马路中间！',angle:'侧面长焦·200mm+',tip:'穿工装风/牛仔+马丁靴，戴墨镜'},{title:'路边坐姿',desc:'坐在路边护栏或地面上，双腿伸向公路方向，一只手撑地身体后仰。长焦从正面拍摄，公路的纵深感极强。',angle:'正前方长焦·150-200mm',tip:'选有坡度的路段，U型更明显'},{title:'无人机跟拍',desc:'人沿着公路边走路，无人机从侧面低空跟拍。公路在戈壁中延伸的孤独感。',angle:'无人机侧面跟拍·20-50m',tip:'早晚光线，影子拉长更有氛围'}]},
+  {id:'p5',spot:'水上雅丹',keyword:'水上雅丹 魔鬼城 日落 剪影 航拍',alias:'shuishangyadan ssyd 雅丹 魔鬼城 水上魔鬼城 乌素特',bestTime:'傍晚日落时分',drone:true,poses:[{title:'雅丹剪影',desc:'站在雅丹土丘上，面对落日方向。摄影师从下往上仰拍，以橙红色天空为背景拍出人物剪影。双手可以举起或自然垂放。',angle:'低角度仰拍·24mm广角',tip:'日落前15分钟天空色彩最丰富'},{title:'湖边倒影',desc:'人站在水边，利用平静的水面拍出雅丹+人物+倒影的对称构图。人物偏画面一侧。',angle:'平视对称构图·35mm',tip:'无风时水面如镜，倒影最清晰'}]},
+  {id:'p6',spot:'黑独山',keyword:'黑独山 月球 暗黑风 荒凉 机能风',alias:'heidushan hds 黑独 黑山 月球表面 外星',bestTime:'傍晚光影最好',drone:true,poses:[{title:'月球漫步',desc:'穿全黑机能风服装，站在黑色山体前，身体正对镜头，微微低头。构图居中，人物占比小。',angle:'平视或微仰·35-50mm',tip:'穿全黑！任何亮色都会破坏氛围'},{title:'行走荒原',desc:'在黑色碎石地面上向远方走去，只拍背影。广角低角度，让地面纹理占据画面下2/3。',angle:'低角度广角·16-24mm',tip:'后期降低饱和度，加冷色调'}]},
+  {id:'p7',spot:'鸣沙山月牙泉',keyword:'鸣沙山 月牙泉 沙漠 骆驼 日落 剪影 汉服',alias:'mingshashan mss 鸣沙山 月牙泉 沙漠 骆驼 敦煌沙漠',bestTime:'下午5点后/日落前后30分钟',drone:false,poses:[{title:'沙脊行走',desc:'走在沙丘脊线上，身体侧对镜头。摄影师从下方往上拍，以干净的天空做背景，沙脊的优美曲线引导视线。',angle:'低角度仰拍·70-200mm',tip:'光脚在沙脊上走，沙的纹理更自然'},{title:'骆驼剪影',desc:'骑在骆驼上，摄影师在前方远处用长焦拍。日落时以橙红色天空为背景，骆驼和人物的剪影层次分明。',angle:'正面长焦逆光·200mm+',tip:'骆驼队经过沙脊时最佳'},{title:'汉服飞天',desc:'穿汉服站在沙丘高处，让裙摆和披帛随风飘扬。一手轻提裙角，一手扬起披帛。广角仰拍。',angle:'低角度广角仰拍·16-24mm',tip:'等风来！披帛飘起的瞬间按下快门'}]},
+  {id:'p8',spot:'七彩丹霞',keyword:'七彩丹霞 彩虹山 日落 纯色裙',alias:'qicaidanxia qcdx 丹霞 张掖丹霞 彩虹山 彩色山',bestTime:'日落前2小时进场',drone:false,poses:[{title:'观景台人像',desc:'站在4号观景台（虹霞台）栏杆边，身体侧对镜头，看向远方的彩色山体。中焦把人物和远处的彩色岩层压缩在一起。',angle:'平视·50-85mm',tip:'穿纯白或纯黑裙子，和彩色丹霞对比'},{title:'栈道行走',desc:'在景区栈道上向远处走，背影构图。栈道作为引导线延伸至彩色山体。',angle:'正后方平视·35-50mm',tip:'等一批游客走过后再拍，画面干净'}]},
+  {id:'p9',spot:'祁连草原',keyword:'祁连 草原 骑马 雪山 小瑞士',alias:'qilian qlcy 祁连山 草原 骑马 瑞士 雪山草原',bestTime:'全天（清晨薄雾最佳）',drone:true,poses:[{title:'草原骑马',desc:'骑在马背上，侧对镜头。远方的岗什卡雪峰作为背景，绿色草原+白色雪山+骑马人物。',angle:'侧面平视·70-200mm',tip:'穿白色碎花裙或民族风服装'},{title:'奔跑抓拍',desc:'在草原上向远方奔跑，摄影师从侧面低位抓拍。连拍模式选最自然的瞬间。',angle:'侧面低位·24-70mm连拍',tip:'真跑！别假跑，自然摆动的头发和裙摆是灵魂'}]},
+  {id:'p10',spot:'莫高窟',keyword:'莫高窟 九层楼 人文 壁画',alias:'mogaoku mgk 墨稿库 莫高 敦煌莫高窟 mogao 敦煌 石窟 千佛洞',bestTime:'上午（光线照在九层楼上）',drone:false,poses:[{title:'九层楼前',desc:'站在九层楼前的广场上，面对建筑。用广角仰拍把九层楼全貌收入画面，人物放在画面下方1/4处。',angle:'低角度广角仰拍·16-24mm',tip:'洞窟内禁止拍照！仅外景可以'},{title:'长廊漫步',desc:'在莫高窟外长廊慢慢走，侧脸看壁画复制品或建筑细节。自然的人文氛围感。',angle:'侧面平视·50mm',tip:'适合拍有故事感的侧脸照'}]}
+];
+
+const universalPoses = [
+  {id:'u1',title:'回眸一笑',icon:'👀',tags:['万能','抓拍','自然'],desc:'向前走几步，听到回头后自然转身看向镜头笑。精髓在于抓拍那一瞬间的自然表情，不要摆拍。',suit:'所有场景通用，公路/草原/湖边最佳',tip:'走路速度不要太快，转头的瞬间最好看'},
+  {id:'u2',title:'牵手背影',icon:'🤝',tags:['情侣','氛围感','不露脸'],desc:'两人手牵手向远方走去，拍背影。画面传递一起走向远方的故事感。不需要表情管理，出片率100%。',suit:'公路、湖边、草原、沙漠、戈壁都适用',tip:'两人步伐同步，距离不要太远，手臂自然摆动'},
+  {id:'u3',title:'日落剪影',icon:'🌅',tags:['氛围感','高级','不挑颜值'],desc:'逆光拍摄，让人物完全变成黑色剪影。动作要大幅度、轮廓清晰——举手、跳跃、拥抱、亲吻都适合。测光对准天空最亮处。',suit:'任何有开阔天空的场景',tip:'侧脸比正脸轮廓更好看，两人互动剪影更甜'},
+  {id:'u4',title:'坐看远方',icon:'🧘',tags:['安静','意境','不露脸'],desc:'侧身坐在画面一角，看向远方。画面大面积留白给风景，人物是点缀。',suit:'湖边、山顶、沙丘、草原高处',tip:'人物放在画面左/右下角1/3位置'},
+  {id:'u5',title:'跳跃抓拍',icon:'🤸',tags:['活力','动感','情侣'],desc:'面对镜头跳起来！双腿弯曲后收，手臂自然上扬。摄影师蹲低连拍，选空中姿态最好的那张。',suit:'公路、草原、戈壁等开阔场景',tip:'跳之前先深呼吸，跳的时候全身放松'},
+  {id:'u6',title:'镜面倒影',icon:'🪞',tags:['创意','对称','高级'],desc:'利用水面、墨镜、手机屏幕等反射面拍倒影。最经典的是茶卡盐湖的镜面倒影。',suit:'盐湖、平静湖面、雨后积水',tip:'等水面完全平静后拍摄，无风时最佳'},
+  {id:'u7',title:'车窗人像',icon:'🚗',tags:['自驾','氛围感','故事感'],desc:'坐在车里，透过车窗拍摄。车窗作为前景框架，人物或看窗外风景或闭眼听歌。',suit:'自驾途中任何有风景的路段',tip:'车窗稍微开一点缝隙，风吹动头发更有感觉'},
+  {id:'u8',title:'广角仰拍',icon:'📐',tags:['大片感','视觉冲击','显高'],desc:'摄影师蹲下甚至趴下，从极低角度用广角镜头仰拍。人物显得修长高挑。',suit:'丹霞、戈壁、建筑、有特色的天空',tip:'一只脚向镜头方向伸，利用广角畸变更显腿长'},
+  {id:'u9',title:'局部特写',icon:'🤚',tags:['文艺','细节','氛围感'],desc:'不拍脸，只拍手、脚、裙摆、头发等局部与风景的互动。',suit:'任何场景，适合不想露脸或想要文艺感的时刻',tip:'光圈开大（f/2.8或更大），浅景深让特写更梦幻'},
+  {id:'u10',title:'星空人像',icon:'🌌',tags:['夜景','高级','需要设备'],desc:'帐篷旁或车旁站在星空下。三脚架长曝光25秒，前几秒用手机手电筒给人脸补光后关掉。',suit:'水上雅丹、大柴旦、祁连草原等暗夜区域',tip:'穿亮色衣服更显眼，红色/白色最佳。必须用三脚架！'}
+];
+
+const astroSettings = {
+  camera:'光圈f/2.8|ISO1600-3200|快门15-25秒|手动对焦无穷远',
+  phone:'专业模式|ISO800-1600|快门15-30秒|对焦无穷远|必用三脚架',
+  rule:'500法则：500÷焦距=最长快门秒数（20mm→最长25秒）',
+  bestTime:'新月前后5天·22:00-凌晨2:00·无月光干扰',
+  apps:'Star Walk 2/巧摄/Photopills'
+};
+
+const tips = [
+  {emoji:'⚠️',text:'莫高窟A类票提前30天抢！7月16号早上8点抢8月15号的！',top:true},
+  {emoji:'⚠️',text:'租车合同必须写"不限里程"，口头承诺没用',top:true},
+  {emoji:'⚠️',text:'U型公路禁止在路中间拍照，交警真会来罚款',top:true},
+  {emoji:'⚠️',text:'张掖丹霞景区禁飞无人机，别冒险',top:true},
+  {emoji:'⚠️',text:'无人区出发前加满油，大柴旦到敦煌只有鱼卡服务区有加油站',top:true},
+  {emoji:'⛽',text:'见加油站就加满，不要有侥幸心理'},
+  {emoji:'🏕️',text:'野外露营避开河道和低洼地（山洪风险）'},
+  {emoji:'📷',text:'青海湖边拍照先问是否收费（油菜花田多属牧民）'},
+  {emoji:'🚗',text:'不要随意开车进草地，会被牧民拦下罚款'},
+  {emoji:'💊',text:'红景天提前7天开始吃，到了再吃基本没用'},
+  {emoji:'🛁',text:'第一晚不要洗澡洗头（防高反）'},
+  {emoji:'🛍️',text:'不要在景区买特产，回西宁莫家街买'},
+  {emoji:'👣',text:'鸣沙山鞋套不一定要租，光脚走更舒服'},
+  {emoji:'☁️',text:'茶卡盐湖阴天/大风就别去了，白花钱'},
+  {emoji:'📍',text:'莫高窟导航到数字展示中心，不是直接到洞窟'},
+  {emoji:'🍜',text:'敦煌沙洲夜市往里走，门口的店又贵又一般'},
+  {emoji:'🚫',text:'不要报路边拉客的黑团'},
+  {emoji:'🌸',text:'8月下旬门源油菜花基本谢了，调整预期'},
+  {emoji:'🆘',text:'高反严重（剧烈头痛+呕吐）立刻下撤到低海拔'},
+  {emoji:'💵',text:'带上现金，牧区和部分厕所只收现金'}
+];
+
+const budget = {
+  total:'1.45万-2.55万（两人10天，不含往返机票约1万-1.8万）',
+  items:[
+    {name:'机票往返',range:'4000-8000元',note:'视出发城市'},
+    {name:'租车（10天）',range:'2000-5000元',note:'比亚迪宋Pro~2000/理想L6~4500'},
+    {name:'油费+过路费',range:'2500-3500元',note:'约3000km'},
+    {name:'住宿（9晚）',range:'2500-4000元',note:'酒店+露营混合'},
+    {name:'门票',range:'2000-2500元',note:'两人合计'},
+    {name:'餐饮',range:'1500-2500元',note:''}
+  ]
+};
+
+const checklist = [
+  {cat:'📋 证件',icon:'📋',items:[{id:'c1',name:'身份证×2',imp:true},{id:'c2',name:'驾驶证×2（轮换开车）',imp:true},{id:'c3',name:'学生证（门票优惠）',imp:false}]},
+  {cat:'☀️ 防晒（极其重要！）',icon:'☀️',items:[{id:'c4',name:'SPF50+防晒霜（每2-3小时补涂）',imp:true},{id:'c5',name:'宽檐遮阳帽（带防风绳）',imp:true},{id:'c6',name:'UV400墨镜',imp:true},{id:'c7',name:'防晒面罩/魔术头巾',imp:true},{id:'c8',name:'冰袖',imp:true},{id:'c9',name:'润唇膏（极其干燥！）',imp:true}]},
+  {cat:'👔 衣物（洋葱式叠穿）',icon:'👔',items:[{id:'c10',name:'冲锋衣（带抓绒内胆）×2人',imp:true},{id:'c11',name:'薄羽绒服（露营必备）',imp:true},{id:'c12',name:'速干T恤×4',imp:false},{id:'c13',name:'长裤×2',imp:false},{id:'c14',name:'拍照裙子×3-4',imp:false},{id:'c15',name:'一次性内裤×N',imp:false},{id:'c16',name:'防水徒步鞋',imp:true},{id:'c17',name:'凉拖/洞洞鞋（盐湖用）',imp:true},{id:'c18',name:'薄围巾/披肩',imp:false}]},
+  {cat:'⛺ 露营装备',icon:'⛺',items:[{id:'c19',name:'防风帐篷',imp:true},{id:'c20',name:'-5℃睡袋×2',imp:true},{id:'c21',name:'防潮垫×2',imp:true},{id:'c22',name:'营地灯/头灯',imp:true},{id:'c23',name:'户外电源/大容量充电宝',imp:true},{id:'c24',name:'便携炉头+气罐',imp:false}]},
+  {cat:'📷 电子设备',icon:'📷',items:[{id:'c25',name:'无人机+备用电池',imp:true},{id:'c26',name:'相机+广角+长焦镜头',imp:true},{id:'c27',name:'三脚架（拍星空必备）',imp:true},{id:'c28',name:'充电宝×2（2万毫安以上）',imp:true},{id:'c29',name:'车载充电器（多口）',imp:true},{id:'c30',name:'离线地图（提前下载青海+甘肃！）',imp:true}]},
+  {cat:'💊 健康/药品',icon:'💊',items:[{id:'c31',name:'红景天（提前7天开始吃）',imp:true},{id:'c32',name:'便携氧气瓶×4（西宁药店买）',imp:true},{id:'c33',name:'葡萄糖口服液',imp:true},{id:'c34',name:'布洛芬（高反头痛用）',imp:true},{id:'c35',name:'感冒药+肠胃药+晕车药',imp:false},{id:'c36',name:'保温杯',imp:true}]},
+  {cat:'💰 其他',icon:'💰',items:[{id:'c37',name:'现金1000元（牧区、厕所只收现金）',imp:true},{id:'c38',name:'垃圾袋×20（环保！）',imp:true},{id:'c39',name:'密封袋（相机防沙用）',imp:true},{id:'c40',name:'一次性床单/枕套+湿纸巾',imp:false}]}
+];
+
+const weatherData = [
+  {day:'8/15',icon:'⛅',hi:28,lo:12,sunrise:'6:32',sunset:'20:12',loc:'西宁→青海湖'},
+  {day:'8/16',icon:'☀️',hi:26,lo:8,sunrise:'6:30',sunset:'20:14',loc:'茶卡→大柴旦'},
+  {day:'8/17',icon:'☀️',hi:28,lo:10,sunrise:'6:55',sunset:'20:30',loc:'翡翠湖→水上雅丹'}
+];
+
+const photoMap = {};
+spotPoses.forEach(p => { photoMap[p.spot] = p });
+
+// ==================== APP LOGIC ====================
+let currentPage = 'home';
+let currentDay = null;
+let photoTab = 'spots';
+let filteredSpots = [...spotPoses];
+let filteredUni = [...universalPoses];
+
+function switchTab(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tabbar-item').forEach(t => t.classList.remove('active'));
+
+  if (page === 'daydetail') {
+    document.getElementById('page-daydetail').classList.add('active');
+  } else if (page === 'budget') {
+    document.getElementById('page-budget').classList.add('active');
+    document.querySelector('.tabbar-item[data-page="tips"]').classList.add('active');
+    currentPage = 'tips';
+  } else {
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelector('.tabbar-item[data-page="' + page + '"]').classList.add('active');
+    currentPage = page;
+    if (page === 'home') renderHome();
+    if (page === 'itinerary') renderItinerary();
+    if (page === 'photo') renderPhoto();
+    if (page === 'checklist') renderChecklist();
+    if (page === 'tips') renderTips();
+    if (page === 'budget') renderBudget();
+  }
+  window.scrollTo(0, 0);
+}
+
+function goDayDetail(day) {
+  currentDay = day;
+  const d = itinerary.find(x => x.day === day);
+  if (!d) return;
+  document.getElementById('detailNav').textContent = 'D' + day + ' · ' + d.title;
+  let html = '<div class="detail-hero" style="background:linear-gradient(135deg,' + d.color + ',' + d.color + '88)">';
+  html += '<div class="detail-hero-day">Day ' + d.day + '</div>';
+  html += '<div class="detail-hero-date">' + d.date + '</div>';
+  html += '<div class="detail-hero-title">' + d.title + '</div>';
+  html += '<div class="detail-hero-desc">' + d.desc + '</div></div>';
+  html += '<div class="card drive-card"><div class="drive-row">';
+  html += '<div class="drive-item">🚗<span class="drive-val">' + d.driveTime + '</span></div>';
+  html += '<div class="drive-item">🛣️<span class="drive-val">' + d.driveDist + '</span></div>';
+  html += '<div class="drive-item">🏠<span class="drive-val">' + (d.stay || '—') + '</span></div>';
+  html += '</div></div>';
+  html += '<div class="sec-hd"><span class="sec-title">📍 本日景点</span></div>';
+
+  d.spots.forEach(s => {
+    const photo = findPhoto(s.name);
+    html += '<div class="card spot-card-item" onclick="goSpotDetail(\'' + s.id + '\')">';
+    html += '<div class="spot-card-hd"><span class="spot-card-name">' + s.name + '</span>';
+    html += s.needBook ? '<span class="tag tag-red">需预约</span>' : '<span class="tag tag-green">无需预约</span>';
+    html += '</div><div class="spot-meta">';
+    html += '<span class="meta-tag">🎫 ' + s.ticket + '</span>';
+    html += '<span class="meta-tag">🕐 ' + (s.time || '—') + '</span>';
+    if (s.nav && s.nav !== '—') html += '<span class="meta-tag">📍 ' + s.nav.substring(0,25) + '</span>';
+    html += '</div>';
+    if (s.notes && s.notes.length) {
+      html += '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:4px">';
+      s.notes.slice(0,3).forEach(n => html += '• ' + n + '<br>');
+      html += '</div>';
+    }
+    if (photo) {
+      html += '<div class="photo-inline"><div class="photo-inline-hd">📸 拍照：' + photo.bestTime + '</div>';
+      photo.poses.forEach((p,i) => {
+        html += '<div class="pi-pose"><span class="pi-pose-num">'+(i+1)+'.</span><span class="pi-pose-title">'+p.title+'</span><span class="pi-pose-angle">'+p.angle+'</span></div>';
+      });
+      html += '<div style="font-size:11px;margin-top:4px">' + (photo.drone ? '🛸 可飞无人机' : '🚫 禁飞无人机') + '</div>';
+      html += '</div>';
+    }
+    html += '<div class="spot-arrow">查看完整攻略›</div></div>';
+  });
+
+  html += '<div class="nav-row">';
+  if (day > 0) html += '<button class="nav-btn" onclick="goDayDetail(' + (day-1) + ')">← 前一天</button>';
+  if (day < 10) html += '<button class="nav-btn" onclick="goDayDetail(' + (day+1) + ')">后一天 →</button>';
+  html += '</div><div class="nav-row"><button class="nav-btn" onclick="switchTab(\'itinerary\')">返回行程列表</button></div>';
+
+  document.getElementById('dayDetailContent').innerHTML = html;
+  switchTab('daydetail');
+}
+
+function findPhoto(name) {
+  if (photoMap[name]) return photoMap[name];
+  for (const key of Object.keys(photoMap)) {
+    if (name.includes(key) || key.includes(name)) return photoMap[key];
+  }
+  return null;
+}
+
+function goSpotDetail(id) {
+  for (const d of itinerary) {
+    const s = d.spots.find(x => x.id === id);
+    if (s) {
+      alert('📍 ' + s.name + '\n\n导航：' + s.nav + '\n门票：' + s.ticket + '\n时间：' + s.time + '\n\n注意事项：\n' + s.notes.map((n,i) => (i+1)+'. '+n).join('\n'));
+      return;
+    }
+  }
+}
+
+// ==================== RENDER FUNCTIONS ====================
+function renderHome() {
+  // Countdown
+  const target = new Date('2026-08-15T00:00:00+08:00');
+  const now = new Date();
+  const diff = target - now;
+  if (diff > 0) {
+    document.getElementById('cd-d').textContent = Math.floor(diff/86400000);
+    document.getElementById('cd-h').textContent = Math.floor((diff%86400000)/3600000);
+    document.getElementById('cd-m').textContent = Math.floor((diff%3600000)/60000);
+  }
+
+  // Today section
+  const d = itinerary.find(x => x.day === 1);
+  let todayHTML = '<div class="sec-hd"><span class="sec-title">🚗 出发首日 · ' + d.date + '</span><span class="sec-link" onclick="goDayDetail(1)">查看详情›</span></div>';
+  todayHTML += '<div class="today-card" onclick="goDayDetail(1)">';
+  todayHTML += '<div class="today-top"><span class="today-icon">' + d.icon + '</span><div><span class="today-title">' + d.title + '</span><span class="today-desc">' + d.desc + '</span></div></div>';
+  todayHTML += '<div class="today-meta"><span>🚗 ' + d.driveTime + ' · ' + d.driveDist + '</span><span>🏠 ' + d.stay + '</span></div>';
+  todayHTML += '<div class="today-spots">';
+  d.spots.forEach(s => { todayHTML += '<div class="today-spot"><span class="today-spot-name">' + s.name + '</span><span class="today-spot-type">' + s.type + '</span></div>'; });
+  todayHTML += '</div></div>';
+  document.getElementById('todaySection').innerHTML = todayHTML;
+
+  // Weather
+  let wHTML = '';
+  weatherData.forEach(w => {
+    wHTML += '<div class="w-card"><div>' + w.day + '</div><div class="w-icon">' + w.icon + '</div><div class="w-temp">' + w.hi + '°/' + w.lo + '°</div><div style="font-size:10px;color:#8E99A4">🌅'+w.sunrise+'</div><div style="font-size:10px;color:#BDC3C7">'+w.loc+'</div></div>';
+  });
+  document.getElementById('weatherRow').innerHTML = wHTML;
+}
+
+function renderItinerary() {
+  let html = '';
+  itinerary.forEach(d => {
+    html += '<div class="day-card" onclick="goDayDetail(' + d.day + ')">';
+    html += '<div class="day-badge" style="background:' + d.color + '"><span>D' + d.day + '</span><span class="day-badge-date">' + d.date + '</span></div>';
+    html += '<div class="day-body"><div class="day-hd"><span class="day-hd-icon">' + d.icon + '</span><div><span class="day-hd-title">' + d.title + '</span><span class="day-hd-desc">' + d.desc + '</span></div></div>';
+    html += '<div class="day-meta"><span>🚗 ' + d.driveTime + ' · ' + d.driveDist + '</span></div>';
+    html += '<div class="day-spots">';
+    d.spots.forEach(s => { html += '<div class="day-spot"><span class="day-spot-dot" style="background:' + d.color + '"></span><span class="day-spot-name">' + s.name + '</span><span class="day-spot-type">' + s.type + '</span></div>'; });
+    html += '</div></div></div>';
+  });
+  document.getElementById('dayList').innerHTML = html;
+}
+
+function renderPhoto() { filterPhoto(); }
+
+function filterPhoto() {
+  const kw = document.getElementById('photoSearch').value.trim().toLowerCase();
+  if (!kw) { filteredSpots = [...spotPoses]; filteredUni = [...universalPoses]; }
+  else {
+    filteredSpots = spotPoses.filter(s => {
+      if (s.spot.toLowerCase().includes(kw) || s.keyword.toLowerCase().includes(kw)) return true;
+      if (s.alias && s.alias.toLowerCase().includes(kw)) return true;
+      if (s.poses.some(p => p.title.toLowerCase().includes(kw) || p.desc.toLowerCase().includes(kw))) return true;
+      const chars = [...kw].filter(c => c.trim() && !/[a-zA-Z0-9]/.test(c));
+      if (chars.length >= 2) {
+        const spotChars = [...s.spot];
+        if (chars.filter(c => spotChars.includes(c)).length >= Math.ceil(chars.length/2)) return true;
+      }
+      return false;
+    });
+    filteredUni = universalPoses.filter(u =>
+      u.title.toLowerCase().includes(kw) || u.tags.some(t => t.toLowerCase().includes(kw)) || u.desc.toLowerCase().includes(kw) || u.suit.toLowerCase().includes(kw)
+    );
+  }
+  displayPhotoContent();
+}
+
+function switchPhotoTab(tab, el) {
+  photoTab = tab;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  displayPhotoContent();
+}
+
+function displayPhotoContent() {
+  // Spot list
+  let spotHTML = '';
+  filteredSpots.forEach(s => {
+    spotHTML += '<div class="card spot-pose-card"><div class="spot-pose-hd"><span class="spot-pose-name">' + s.spot + '</span> <span class="tag tag-blue" style="font-size:10px">' + s.bestTime + '</span>' + (s.drone ? ' <span class="tag tag-green" style="font-size:10px">可飞无人机</span>' : ' <span class="tag tag-red" style="font-size:10px">禁飞</span>') + '</div>';
+    s.poses.forEach((p, i) => {
+      spotHTML += '<div class="pose-item"><div class="pose-hd"><span class="pose-num">' + (i+1) + '</span><span class="pose-name">' + p.title + '</span></div>';
+      spotHTML += '<div class="pose-desc">' + p.desc + '</div>';
+      spotHTML += '<div class="pose-meta"><span>📐 ' + p.angle + '</span><span>💡 ' + p.tip + '</span></div></div>';
+    });
+    spotHTML += '</div>';
+  });
+  if (!filteredSpots.length) spotHTML = '<div class="empty">未找到匹配的景点</div>';
+
+  // Universal list
+  let uniHTML = '';
+  filteredUni.forEach(u => {
+    uniHTML += '<div class="uni-card"><div class="uni-hd"><span class="uni-icon">' + u.icon + '</span><div><span class="uni-title">' + u.title + '</span><div style="margin-top:4px">' + u.tags.map(t => '<span class="tag tag-purple" style="font-size:10px">'+t+'</span>').join(' ') + '</div></div></div>';
+    uniHTML += '<div class="uni-desc">' + u.desc + '</div>';
+    uniHTML += '<div class="uni-bottom"><div>📍 ' + u.suit + '</div><div style="color:#E8734A;margin-top:2px">💡 ' + u.tip + '</div></div></div>';
+  });
+  if (!filteredUni.length) uniHTML = '<div class="empty">未找到匹配的姿势</div>';
+
+  // Astro
+  let astroHTML = '<div class="card astro-card">';
+  astroHTML += '<div class="sec-title" style="color:#D4A853">🌌 星空拍摄参数</div>';
+  const astroKeys = {camera:'📷 相机设置',phone:'📱 手机设置',rule:'📐 500法则',bestTime:'⏰ 最佳时段',apps:'📲 推荐APP'};
+  for (const [k,v] of Object.entries(astroKeys)) {
+    astroHTML += '<div class="astro-line"><span class="astro-label">' + v + '</span>' + astroSettings[k] + '</div>';
+  }
+  astroHTML += '</div><div class="sec-hd"><span class="sec-title">🌌 星空人像姿势</span></div>';
+  astroHTML += '<div class="card spot-pose-card"><div class="spot-pose-hd">帐篷光绘+仰望星空</div>';
+  astroHTML += '<div class="pose-desc">帐篷内放营地灯（暖黄），人在旁站定不动。三脚架长曝光25秒，前3秒用手机给面部短暂补光后关掉。穿亮色！红/白最佳。必须用三脚架！</div></div>';
+  astroHTML += '</div>';
+
+  document.getElementById('photoSpotList').innerHTML = spotHTML;
+  document.getElementById('photoSpotList').style.display = photoTab === 'spots' ? 'block' : 'none';
+  document.getElementById('photoUniList').innerHTML = uniHTML;
+  document.getElementById('photoUniList').style.display = photoTab === 'universal' ? 'block' : 'none';
+  document.getElementById('photoAstro').innerHTML = astroHTML;
+  document.getElementById('photoAstro').style.display = photoTab === 'astro' ? 'block' : 'none';
+}
+
+function renderChecklist() {
+  const checked = JSON.parse(localStorage.getItem('qghx_checklist') || '{}');
+  let total = 0, done = 0;
+  let html = '';
+  checklist.forEach(cat => {
+    html += '<div class="cat-hd"><span>' + cat.icon + '</span>' + cat.cat + '</div>';
+    cat.items.forEach(item => {
+      total++;
+      const isDone = checked[item.id];
+      if (isDone) done++;
+      html += '<div class="check-row' + (isDone ? ' checked' : '') + '" onclick="toggleCheck(\'' + item.id + '\')">';
+      html += '<div class="check-box' + (isDone ? ' on' : '') + '">' + (isDone ? '✓' : '') + '</div>';
+      html += '<span class="check-name">' + item.name + '</span>';
+      if (item.imp) html += '<span class="check-imp">必带</span>';
+      html += '</div>';
+    });
+  });
+  document.getElementById('checklistContent').innerHTML = html;
+  const pct = total > 0 ? Math.round(done/total*100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent = '已完成 ' + done + '/' + total + ' 项（' + pct + '%）';
+}
+
+function toggleCheck(id) {
+  const checked = JSON.parse(localStorage.getItem('qghx_checklist') || '{}');
+  checked[id] = !checked[id];
+  localStorage.setItem('qghx_checklist', JSON.stringify(checked));
+  renderChecklist();
+}
+
+function resetChecklist() {
+  if (confirm('确定要清除所有勾选吗？')) {
+    localStorage.removeItem('qghx_checklist');
+    renderChecklist();
+  }
+}
+
+function renderTips() {
+  let html = '<div class="sec-hd"><span class="sec-title">🔴 最重要的提醒</span></div>';
+  tips.filter(t => t.top).forEach(t => {
+    html += '<div class="tip-row top"><span class="tip-emoji">' + t.emoji + '</span>' + t.text + '</div>';
+  });
+  html += '<div class="sec-hd"><span class="sec-title">💡 更多避坑建议</span></div>';
+  tips.filter(t => !t.top).forEach(t => {
+    html += '<div class="tip-row"><span class="tip-emoji">' + t.emoji + '</span>' + t.text + '</div>';
+  });
+  document.getElementById('tipsContent').innerHTML = html;
+}
+
+function renderBudget() {
+  let html = '<div class="total-card"><span class="total-label">💰 两人10天预估总费用</span><span class="total-amount">' + budget.total + '</span></div>';
+  html += '<div class="sec-hd"><span class="sec-title">📊 费用明细</span></div><div class="card">';
+  budget.items.forEach(item => {
+    html += '<div class="budget-row"><span>' + item.name + '</span><span class="budget-range">' + item.range + '</span></div>';
+    if (item.note) html += '<div style="font-size:11px;color:var(--text2);margin:-6px 0 8px">' + item.note + '</div>';
+  });
+  html += '</div>';
+  html += '<div class="sec-hd"><span class="sec-title">💡 省钱技巧</span></div><div class="card">';
+  ['旺季（7-8月）价格上浮约30%，提前2个月预订更划算','莫高窟A类票238元 vs B类票100元，体验差距巨大','青海湖不必非去二郎剑，黑马河免费段同样美','敦煌沙洲夜市往里走，价格便宜一半','茶卡盐湖浙江籍游客免门票','自带帐篷露营比住酒店省200-400元/晚'].forEach(t => {
+    html += '<div class="saving-tip">💡 ' + t + '</div>';
+  });
+  html += '</div>';
+  html += '<div class="sec-hd"><span class="sec-title">🚗 租车方案对比</span></div><div class="card">';
+  [{name:'比亚迪宋Pro新能源',desc:'L2智驾·混动省油·性价比之选',price:'~2000元/10天'},{name:'坦克300',desc:'越野利器·基础L2·出片神器',price:'~3000元/10天'},{name:'问界M7/理想L6',desc:'华为ADS·高速NOA·智驾最强',price:'~4500元/10天'}].forEach(c => {
+    html += '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F5F6FA"><div><div style="font-weight:600">'+c.name+'</div><div style="font-size:12px;color:var(--text2)">'+c.desc+'</div></div><div style="font-weight:700;color:var(--primary)">'+c.price+'</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('budgetContent').innerHTML = html;
+}
+
+// ==================== PWA INSTALL ====================
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').style.display = 'block';
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('installBanner').style.display = 'none';
+    });
+  }
+}
+
+// ==================== INIT ====================
+function init() {
+  renderHome();
+  renderItinerary();
+  renderPhoto();
+  renderChecklist();
+  renderTips();
+  renderBudget();
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  // Countdown timer
+  setInterval(renderHome, 60000);
+}
+init();
+</script>
+</body>
+</html>
